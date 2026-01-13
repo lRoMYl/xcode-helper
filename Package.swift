@@ -3,10 +3,10 @@
 import PackageDescription
 
 let package = Package(
-    name: "link-framework-cli",
+    name: "xcode-helper",
     platforms: [.macOS(.v13)],
     products: [
-        .executable(name: "link-framework-cli", targets: ["LinkFrameworkCLI"])
+        .executable(name: "xcode-helper", targets: ["XCodeHelper"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.6.0"),
@@ -14,7 +14,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "LinkFrameworkCLI",
+            name: "XCodeHelper",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "XcodeProj", package: "XcodeProj"),
@@ -24,8 +24,8 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "LinkFrameworkCLITests",
-            dependencies: ["LinkFrameworkCLI"]
+            name: "XCodeHelperTests",
+            dependencies: ["XCodeHelper"]
         )
     ]
 )

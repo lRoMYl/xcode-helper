@@ -1,5 +1,5 @@
 PREFIX ?= /usr/local
-BINARY_NAME = link-framework-cli
+BINARY_NAME = xcode-helper
 
 .PHONY: build install clean test
 
