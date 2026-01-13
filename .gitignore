@@ -1,0 +1,19 @@
+# Xcode
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# macOS
+.DS_Store
+*.swp
+*~.nib
+
+# IDE
+.idea/
+*.xcworkspace
+!*.xcworkspace/contents.xcworkspacedata
