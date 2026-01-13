@@ -67,6 +67,12 @@ extension FrameworkMapping {
                 linkedPath: "../../pd-mob-b2c-ios/Carthage/Checkouts/apollo-ios-xcframework/xcframeworks/ApolloAPI.xcframework"
             ),
         ],
-        nestedProjectPath: "../pd-mob-subscription-ios/Subscription/Subscription.xcodeproj"
+        nestedProjectPath: "../pd-mob-subscription-ios/Subscription/Subscription.xcodeproj",
+        targetFramework: TargetFrameworkInfo(
+            frameworkName: "Subscription.xcframework",
+            frameworkPath: "Carthage/Build/Subscription.xcframework",
+            nestedProjectPath: "../pd-mob-subscription-ios/Subscription/Subscription.xcodeproj",
+            productName: "Subscription"
+        )
     )
 }

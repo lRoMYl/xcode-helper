@@ -50,7 +50,11 @@ struct EnableCommand: AsyncParsableCommand {
                 logger.info("     TO:   \(remapping.linkedPath)")
             }
             logger.info("")
-            if let nestedPath = frameworkMapping.nestedProjectPath {
+            if let targetFramework = frameworkMapping.targetFramework {
+                logger.info("2. In \(frameworkMapping.targetProject.name):")
+                logger.info("   - Remove: \(targetFramework.frameworkName)")
+                logger.info("   - Add: \(targetFramework.nestedProjectPath)")
+            } else if let nestedPath = frameworkMapping.nestedProjectPath {
                 logger.info("2. Add nested project reference in \(frameworkMapping.targetProject.name):")
                 logger.info("   - \(nestedPath)")
             }
@@ -59,31 +63,52 @@ struct EnableCommand: AsyncParsableCommand {
 
         let backupManager = BackupManager()
 
-        // Backup and modify source project
+        // Backup source project (for rollback on failure)
         logger.info("")
-        logger.info("Backing up source project...")
+        logger.info("Creating backup for rollback...")
         let sourceBackup = try backupManager.createBackup(
             of: projects.sourceProjectPath,
             mappingId: frameworkMapping.id
         )
-        logger.verbose("Backup created at: \(sourceBackup)")
+        logger.verbose("Source backup at: \(sourceBackup)")
 
-        logger.info("Remapping framework paths...")
+        // Modify source project - remap frameworks
+        logger.info("Remapping framework paths in source project...")
         let sourceModifier = try ProjectModifier(projectPath: projects.sourceProjectPath)
         try sourceModifier.remapFrameworks(frameworkMapping.frameworkRemappings, toLinked: true)
         try sourceModifier.save()
         logger.info("Source project updated successfully")
 
-        // Backup and modify target project (add nested project reference)
-        if let nestedPath = frameworkMapping.nestedProjectPath {
+        // Modify target project - swap xcframework with xcodeproj
+        var savedXCFrameworkInfo: SavedXCFrameworkInfo?
+
+        if let targetFramework = frameworkMapping.targetFramework {
             logger.info("")
-            logger.info("Backing up target project...")
+            logger.info("Modifying target project...")
+
+            // Backup target project (for rollback on failure)
             let targetBackup = try backupManager.createBackup(
                 of: projects.targetProjectPath,
                 mappingId: "\(frameworkMapping.id)-target"
             )
-            logger.verbose("Backup created at: \(targetBackup)")
+            logger.verbose("Target backup at: \(targetBackup)")
 
+            let targetModifier = try ProjectModifier(projectPath: projects.targetProjectPath)
+
+            // Replace xcframework with xcodeproj
+            logger.info("Replacing \(targetFramework.frameworkName) with \(targetFramework.nestedProjectPath)...")
+            savedXCFrameworkInfo = try targetModifier.replaceXCFrameworkWithXcodeproj(
+                frameworkName: targetFramework.frameworkName,
+                frameworkPath: targetFramework.frameworkPath,
+                xcodeprojPath: targetFramework.nestedProjectPath,
+                productName: targetFramework.productName
+            )
+
+            try targetModifier.save()
+            logger.info("Target project updated successfully")
+        } else if let nestedPath = frameworkMapping.nestedProjectPath {
+            // Fallback to just adding nested project (legacy behavior)
+            logger.info("")
             logger.info("Adding nested project reference...")
             let targetModifier = try ProjectModifier(projectPath: projects.targetProjectPath)
             try targetModifier.addNestedProject(at: nestedPath)
@@ -91,8 +116,13 @@ struct EnableCommand: AsyncParsableCommand {
             logger.info("Target project updated successfully")
         }
 
-        // Save linking state
-        try LinkingState.write(enabled: true, mapping: frameworkMapping.id, at: projects.basePath)
+        // Save linking state with xcframework info for restoration
+        try LinkingState.write(
+            enabled: true,
+            mapping: frameworkMapping.id,
+            savedXCFrameworkInfo: savedXCFrameworkInfo,
+            at: projects.basePath
+        )
 
         logger.info("")
         logger.success("Framework linking enabled for '\(mapping)'!")

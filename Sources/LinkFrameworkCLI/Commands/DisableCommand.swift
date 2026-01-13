@@ -32,34 +32,47 @@ struct DisableCommand: AsyncParsableCommand {
 
         let projects = try locator.locateProjects(from: basePath, mapping: frameworkMapping)
 
-        let backupManager = BackupManager()
-
-        // Restore source project
-        logger.info("Restoring source project from backup...")
+        // Read saved state to get xcframework info
+        var savedState: LinkingState?
         do {
-            try backupManager.restoreLatestBackup(for: frameworkMapping.id)
-            logger.info("Source project restored successfully")
-        } catch BackupError.noBackupFound {
-            logger.warning("No backup found for source project. Remapping frameworks manually...")
-            let sourceModifier = try ProjectModifier(projectPath: projects.sourceProjectPath)
-            try sourceModifier.remapFrameworks(frameworkMapping.frameworkRemappings, toLinked: false)
-            try sourceModifier.save()
-            logger.info("Source project frameworks remapped to original paths")
+            savedState = try LinkingState.read(from: projects.basePath)
+        } catch {
+            logger.verbose("No saved state found, will use default restoration")
         }
 
-        // Restore target project
-        if frameworkMapping.nestedProjectPath != nil {
-            logger.info("Restoring target project from backup...")
-            do {
-                try backupManager.restoreLatestBackup(for: "\(frameworkMapping.id)-target")
-                logger.info("Target project restored successfully")
-            } catch BackupError.noBackupFound {
-                logger.warning("No backup found for target project. Removing nested project reference manually...")
-                let targetModifier = try ProjectModifier(projectPath: projects.targetProjectPath)
-                try targetModifier.removeNestedProject(at: frameworkMapping.nestedProjectPath!)
-                try targetModifier.save()
-                logger.info("Nested project reference removed")
-            }
+        // Restore source project - remap frameworks back to original paths
+        logger.info("Restoring source project...")
+        let sourceModifier = try ProjectModifier(projectPath: projects.sourceProjectPath)
+        try sourceModifier.remapFrameworks(frameworkMapping.frameworkRemappings, toLinked: false)
+        try sourceModifier.save()
+        logger.info("Source project frameworks remapped to original paths")
+
+        // Restore target project - replace xcodeproj with xcframework
+        if let targetFramework = frameworkMapping.targetFramework {
+            logger.info("")
+            logger.info("Restoring target project...")
+
+            let targetModifier = try ProjectModifier(projectPath: projects.targetProjectPath)
+
+            // Replace xcodeproj with xcframework
+            logger.info("Replacing \(targetFramework.nestedProjectPath) with \(targetFramework.frameworkName)...")
+            try targetModifier.replaceXcodeprojWithXCFramework(
+                xcodeprojPath: targetFramework.nestedProjectPath,
+                frameworkPath: targetFramework.frameworkPath,
+                frameworkName: targetFramework.frameworkName,
+                savedInfo: savedState?.savedXCFrameworkInfo
+            )
+
+            try targetModifier.save()
+            logger.info("Target project restored successfully")
+        } else if let nestedPath = frameworkMapping.nestedProjectPath {
+            // Fallback to just removing nested project (legacy behavior)
+            logger.info("")
+            logger.info("Removing nested project reference...")
+            let targetModifier = try ProjectModifier(projectPath: projects.targetProjectPath)
+            try targetModifier.removeNestedProject(at: nestedPath)
+            try targetModifier.save()
+            logger.info("Nested project reference removed")
         }
 
         // Clear linking state
@@ -69,5 +82,9 @@ struct DisableCommand: AsyncParsableCommand {
         logger.success("Framework linking disabled for '\(mapping)'!")
         logger.info("")
         logger.info("The projects have been restored to their original configuration.")
+        logger.info("")
+        logger.info("You may need to:")
+        logger.info("  1. Close and reopen the project in Xcode")
+        logger.info("  2. Clean build folder (Cmd+Shift+K)")
     }
 }

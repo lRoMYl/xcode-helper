@@ -19,6 +19,24 @@ struct FrameworkMapping: Sendable {
 
     /// Path to add as nested project reference in target (relative to target project)
     let nestedProjectPath: String?
+
+    /// Info about the xcframework to swap in target project (optional, for target project modification)
+    let targetFramework: TargetFrameworkInfo?
+}
+
+/// Info about the xcframework in target project that gets swapped with xcodeproj
+struct TargetFrameworkInfo: Sendable {
+    /// Framework name (e.g., "Subscription.xcframework")
+    let frameworkName: String
+
+    /// Path to xcframework in target project (e.g., "Carthage/Build/Subscription.xcframework")
+    let frameworkPath: String
+
+    /// Path to nested xcodeproj (e.g., "../pd-mob-subscription-ios/Subscription/Subscription.xcodeproj")
+    let nestedProjectPath: String
+
+    /// Name of the product from nested project to link (e.g., "Subscription")
+    let productName: String
 }
 
 /// Reference to a project
