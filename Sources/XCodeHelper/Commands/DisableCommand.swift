@@ -52,6 +52,15 @@ struct DisableCommand: AsyncParsableCommand {
             logger.info("")
             logger.info("Restoring target project...")
 
+            // Create backup before modifying target project (for recovery if it fails)
+            let backupManager = BackupManager()
+            logger.verbose("Creating backup before disable...")
+            let targetBackup = try backupManager.createBackup(
+                of: projects.targetProjectPath,
+                mappingId: "\(frameworkMapping.id)-disable"
+            )
+            logger.verbose("Backup at: \(targetBackup)")
+
             let targetModifier = try ProjectModifier(projectPath: projects.targetProjectPath)
 
             // Replace xcodeproj with xcframework

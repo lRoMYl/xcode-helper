@@ -49,6 +49,24 @@ xcode-helper link status
 
 Shows the current linking state for the project.
 
+#### Fix Corrupted Project
+
+```bash
+# Auto-detect project from saved state or current directory
+xcode-helper link fix
+
+# Or specify a mapping explicitly
+xcode-helper link fix subscription
+```
+
+Attempts to fix a corrupted project by regenerating it using Tuist or XcodeGen (if the project is managed by either tool).
+
+**Detection:**
+- **Tuist**: Looks for `Project.swift`, `Workspace.swift`, or `Tuist/` directory
+- **XcodeGen**: Looks for `project.yml`, `project.yaml`, or `project.json`
+
+If no project generator is detected, the command will display manual recovery options.
+
 ## Supported Mappings
 
 - `subscription` - pd-mob-subscription-ios framework
@@ -77,5 +95,5 @@ xcode-helper link disable subscription
 
 ## Known Limitations
 
-- Does not work reliably with Tuist-generated projects (use `tuist generate` to restore if issues occur)
 - Requires both source and target repositories to be siblings in the same directory
+- For Tuist/XcodeGen managed projects, use `xcode-helper link fix` to regenerate after issues

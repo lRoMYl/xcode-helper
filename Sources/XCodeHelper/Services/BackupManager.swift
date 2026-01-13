@@ -8,7 +8,7 @@ struct BackupManager {
     init() {
         let home = fileManager.homeDirectoryForCurrentUser
         self.backupDirectory = home
-            .appendingPathComponent(".link-framework-cli")
+            .appendingPathComponent(".xcode-helper")
             .appendingPathComponent("backups")
     }
 

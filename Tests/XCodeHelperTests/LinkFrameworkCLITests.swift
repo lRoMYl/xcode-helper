@@ -1,5 +1,5 @@
 import Testing
-@testable import LinkFrameworkCLI
+@testable import XCodeHelper
 
 @Suite("FrameworkMapping Tests")
 struct FrameworkMappingTests {

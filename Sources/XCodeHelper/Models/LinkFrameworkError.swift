@@ -8,6 +8,8 @@ enum LinkFrameworkError: LocalizedError {
     case projectAlreadyLinked
     case projectNotLinked
     case backupFailed(String)
+    case cannotFix(String)
+    case regenerationFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -34,6 +36,10 @@ enum LinkFrameworkError: LocalizedError {
             return "Project is not in linked state."
         case .backupFailed(let reason):
             return "Backup failed: \(reason)"
+        case .cannotFix(let message):
+            return message
+        case .regenerationFailed(let message):
+            return "Project regeneration failed: \(message)"
         }
     }
 }

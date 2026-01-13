@@ -28,7 +28,7 @@ struct StatusCommand: AsyncParsableCommand {
             logger.info("  Enabled at: \(state.timestamp)")
             logger.info("")
             logger.info("To disable, run:")
-            logger.info("  link-framework-cli disable \(state.mapping)")
+            logger.info("  xcode-helper link disable \(state.mapping)")
         } else {
             logger.info("Status: DISABLED")
             logger.info("")
@@ -40,7 +40,7 @@ struct StatusCommand: AsyncParsableCommand {
             }
             logger.info("")
             logger.info("To enable framework linking, run:")
-            logger.info("  link-framework-cli enable <mapping>")
+            logger.info("  xcode-helper link enable <mapping>")
         }
     }
 }

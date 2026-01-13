@@ -4,7 +4,7 @@ struct LinkCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "link",
         abstract: "Manage local framework linking for debugging",
-        subcommands: [EnableCommand.self, DisableCommand.self, StatusCommand.self],
+        subcommands: [EnableCommand.self, DisableCommand.self, StatusCommand.self, FixCommand.self],
         defaultSubcommand: StatusCommand.self
     )
 }

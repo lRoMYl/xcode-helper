@@ -27,7 +27,7 @@ struct LinkingState: Codable {
     /// Saved info about the xcframework that was replaced (for restoration on disable)
     let savedXCFrameworkInfo: SavedXCFrameworkInfo?
 
-    private static let stateFileName = ".link-framework-cli-state.json"
+    private static let stateFileName = ".xcode-helper-state.json"
 
     /// Write state to the base path
     static func write(
