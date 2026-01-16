@@ -6,6 +6,6 @@ struct XCodeHelper: AsyncParsableCommand {
         commandName: "xcode-helper",
         abstract: "Helper tools for Xcode project management",
         version: "1.0.0",
-        subcommands: [LinkCommand.self]
+        subcommands: [LinkCommand.self, BrandingCommand.self]
     )
 }
